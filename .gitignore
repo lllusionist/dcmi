@@ -1,0 +1,44 @@
+# Build directory (all generated artifacts)
+build/
+build*/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+*.cmake.d
+
+# Compiler intermediates
+*.o
+*.obj
+*.a
+*.so
+*.d
+*.dll
+
+# Firmware outputs
+*.elf
+*.map
+*.bin
+*.hex
+*.lst
+*.axf
+*.srec
+*.ihex
+
+# Editor / IDE user settings
+*.swp
+*.swo
+.vs/
+.idea/
+*.user
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs
+*.log

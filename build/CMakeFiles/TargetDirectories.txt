@@ -1,6 +1,0 @@
-/d/Desktop/STM32H743XIH6/Project/dcmi/build/CMakeFiles/dcmi.dir
-/d/Desktop/STM32H743XIH6/Project/dcmi/build/CMakeFiles/edit_cache.dir
-/d/Desktop/STM32H743XIH6/Project/dcmi/build/CMakeFiles/rebuild_cache.dir
-/d/Desktop/STM32H743XIH6/Project/dcmi/build/cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir
-/d/Desktop/STM32H743XIH6/Project/dcmi/build/cmake/stm32cubemx/CMakeFiles/edit_cache.dir
-/d/Desktop/STM32H743XIH6/Project/dcmi/build/cmake/stm32cubemx/CMakeFiles/rebuild_cache.dir

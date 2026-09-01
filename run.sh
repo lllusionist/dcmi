@@ -1,39 +1,76 @@
 #!/bin/bash
-# 获取当前脚本所在目录
+# ============================================================
+#  STM32H743XIH6 一键构建 + 烧录脚本
+#  用法:
+#    ./run.sh           # 编译并烧录 (默认 CMSIS-DAP)
+#    ./run.sh stlink    # 编译并烧录 (ST-Link)
+#    ./run.sh build     # 只编译，不烧录
+#  要求: arm-none-eabi-gcc / cmake / make / openocd 在 PATH 中
+# ============================================================
+set -e
+
+# ---------- 定位项目根目录 ----------
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
-# 从当前目录开始，向上查找直到找到 CMakeLists.txt 文件，确定项目根目录
 PROJECT_DIR=$SCRIPT_DIR
 while [ ! -f "$PROJECT_DIR/CMakeLists.txt" ]; do
-PROJECT_DIR=$(dirname "$PROJECT_DIR")
+  PROJECT_DIR=$(dirname "$PROJECT_DIR")
 done
-# 获取项目根目录名
 PROJECT_NAME=$(basename "$PROJECT_DIR")
-echo "Project root directory name: $PROJECT_NAME"
+echo "Project: $PROJECT_DIR"
 
-# 创建并进入构建目录
+# ---------- 烧录器选择 ----------
+MODE="${1:-flash}"
+PROBE_CFG="download.cfg"
+if [ "$MODE" = "stlink" ]; then
+  PROBE_CFG="download-stlink.cfg"
+fi
+
+# ---------- 工具链检查 ----------
+MISSING=0
+for TOOL in arm-none-eabi-gcc cmake make openocd; do
+  if ! command -v $TOOL >/dev/null 2>&1; then
+    echo "[错误] 缺少工具: $TOOL"
+    MISSING=1
+  fi
+done
+if [ $MISSING -eq 1 ]; then
+  echo "请先安装缺失工具并加入 PATH，然后重新运行。"
+  echo "  - 工具链: https://developer.arm.com/downloads/-/gnu-rm (安装时勾选 Add to PATH)"
+  echo "  - cmake/make: MSYS2 中 pacman -S cmake make"
+  echo "  - openocd: MSYS2 中 pacman -S mingw-w64-x86_64-openocd"
+  exit 1
+fi
+
+# ---------- 构建 ----------
 BUILD_DIR="$PROJECT_DIR/build"
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
-
-# 运行 Cmake 配置和编译项目
-cmake ..
+echo ""
+echo "== cmake =="
+cmake "$PROJECT_DIR"
+echo ""
+echo "== make =="
 make -j 16
 
-# 根据项目名称生成 ELF，BIN 和 HEX 文件路径
+# ---------- 生成 bin/hex ----------
 ELF_FILE="$BUILD_DIR/${PROJECT_NAME}.elf"
 BIN_FILE="$BUILD_DIR/${PROJECT_NAME}.bin"
 HEX_FILE="$BUILD_DIR/${PROJECT_NAME}.hex"
-
-# 检查 ELF 文件是否 成功 生成
 if [ -f "$ELF_FILE" ]; then
-# 将 ELF 文件转换为 BIN 文件和 HEX 文件
-arm-none-eabi-objcopy -O binary "$ELF_FILE" "$BIN_FILE"
-arm-none-eabi-objcopy -O ihex "$ELF_FILE" "$HEX_FILE"
-echo "Conversion to BIN and HEX completed"
+  arm-none-eabi-objcopy -O binary "$ELF_FILE" "$BIN_FILE"
+  arm-none-eabi-objcopy -O ihex "$ELF_FILE" "$HEX_FILE"
+  echo "ELF/BIN/HEX 生成完成: $ELF_FILE"
 else
-echo "Error: ELF file not found. Compilation might have failed."
-exit 1
+  echo "[错误] ELF 文件未生成，编译可能失败"
+  exit 1
 fi
 
-# 执行 OpenOCD 进行烧录
-openocd -f "$PROJECT_DIR/download.cfg"
+# ---------- 烧录 ----------
+if [ "$MODE" = "build" ]; then
+  echo "已跳过烧录 (build 模式)"
+  exit 0
+fi
+echo ""
+echo "== 烧录 ($PROBE_CFG) =="
+openocd -f "$PROJECT_DIR/$PROBE_CFG"
+echo "烧录完成。"
