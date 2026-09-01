@@ -61,12 +61,21 @@ if errorlevel 1 (
     echo [警告] 环境变量写入失败，请手动设置:
     echo        setx ARM_GCC_BIN "!GCC_BIN!"
 ) else (
-    echo [2/3] 环境变量 ARM_GCC_BIN 已设置: !GCC_BIN!
+    echo [2/4] 环境变量 ARM_GCC_BIN 已设置: !GCC_BIN!
 )
 echo.
 
-REM ---------- 4. 工具检查 ----------
-echo [3/3] 检查其他工具...
+REM ---------- 4. 改写 .vscode/c_cpp_properties.json 的 compilerPath ----------
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0setup-patch.ps1" -GccBin "%GCC_BIN%"
+if errorlevel 1 (
+    echo [警告] 无法改写 c_cpp_properties.json，请手动修改 compilerPath
+) else (
+    echo [3/4] 已写入 compilerPath: %GCC_BIN%\arm-none-eabi-gcc.exe
+)
+echo.
+
+REM ---------- 5. 工具检查 ----------
+echo [4/4] 检查其他工具...
 where cmake >nul 2>&1 && echo     - cmake   OK || echo     - cmake   缺失(MSYS2: pacman -S cmake)
 where make >nul 2>&1 && echo     - make    OK || echo     - make    缺失(MSYS2: pacman -S make)
 where openocd >nul 2>&1 && echo     - openocd OK || echo     - openocd 缺失(可选，烧录用)

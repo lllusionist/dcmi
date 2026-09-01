@@ -13,7 +13,7 @@
                 "USE_PWR_LDO_SUPPLY",
                 "STM32H743xx"
             ],
-            "compilerPath": "${env:ARM_GCC_BIN}/arm-none-eabi-gcc.exe",
+            "compilerPath": "D:/arm-gnu-toolchain-15.3.rel1-mingw-w64-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc.exe",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-arm"
