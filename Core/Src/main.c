@@ -4,6 +4,8 @@
 void SystemClock_Config(void);
 static void MPU_Config(void);
 
+uint8_t test = 0;
+
 int main(void)
 {
 
@@ -14,10 +16,13 @@ int main(void)
   SystemClock_Config();
 
   MX_GPIO_Init();
+  LED_Init();
 
   while (1)
   {
-
+    test++;
+    HAL_Delay(50);
+    HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);
   }
 
 }

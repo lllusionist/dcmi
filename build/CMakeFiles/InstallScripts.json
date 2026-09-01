@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/d/Desktop/STM32H743XIH6/Project/dcmi/build/cmake_install.cmake",
+		"/d/Desktop/STM32H743XIH6/Project/dcmi/build/cmake/stm32cubemx/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

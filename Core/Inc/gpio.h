@@ -8,6 +8,7 @@ extern "C" {
 #include "main.h"
 
 void MX_GPIO_Init(void);
+void LED_Init(void);
 
 #ifdef __cplusplus
 }

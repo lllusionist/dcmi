@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.22)
 
+# Use CMake's own dependency scanner instead of the compiler depfile
+# (fixes "multiple targets match" crash of GNU Make 4.4 with -j on MSYS2)
+set(CMAKE_DEPENDS_USE_COMPILER FALSE)
+
 # Cross-compile toolchain (ARM Cortex-M)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/gcc-arm-none-eabi.cmake)
 

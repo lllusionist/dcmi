@@ -7,6 +7,9 @@ extern "C" {
 
 #include "stm32h7xx_hal.h"
 
+#define LED_PIN GPIO_PIN_13
+#define LED_GPIO_PORT GPIOC
+
 void Error_Handler(void);
 
 #ifdef __cplusplus
