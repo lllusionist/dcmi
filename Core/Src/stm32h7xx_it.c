@@ -1,5 +1,6 @@
 #include "main.h"
 #include "stm32h7xx_it.h"
+#include "usart.h"
 
 void NMI_Handler(void)
 {
@@ -66,4 +67,9 @@ void SysTick_Handler(void)
 
   HAL_IncTick();
 
+}
+
+void USART1_IRQHandler()
+{
+  HAL_UART_IRQHandler(&huart1);
 }
