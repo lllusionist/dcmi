@@ -43,6 +43,7 @@ void uart_init(void)
   HAL_NVIC_EnableIRQ(USART1_IRQn);
 
   HAL_UART_Receive_IT(&huart1, rx_tmp_buf, 1);
+  setvbuf(stdout, NULL, _IONBF, 0);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -52,4 +53,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     rx_buf[rx_cnt++] = rx_tmp_buf[0];
     HAL_UART_Receive_IT(&huart1, rx_tmp_buf, 1);
   }
+}
+
+int _write(int fd, char *pBuffer, int size)
+{
+  (void)fd;
+  if (HAL_UART_Transmit(&huart1, (uint8_t *)pBuffer, (uint16_t)size, 1000) != HAL_OK)
+  {
+    return -1;
+  }
+  return size;
 }

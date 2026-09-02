@@ -20,10 +20,9 @@ int main(void)
 
   while (1)
   {
-    HAL_Delay(200);
+    HAL_Delay(500);
     HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);
   }
-
 }
 
 void SystemClock_Config(void)
