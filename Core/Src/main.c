@@ -1,6 +1,7 @@
 #include "main.h"
 #include "gpio.h"
 #include "usart.h"
+#include "fmc.h"
 
 void SystemClock_Config(void);
 static void MPU_Config(void);
@@ -9,13 +10,12 @@ int main(void)
 {
 
   MPU_Config();
-
   HAL_Init();
-
   SystemClock_Config();
-
   MX_GPIO_Init();
-  LED_Init();
+
+  sdram_init();
+  led_init();
   uart_init();
 
   while (1)
@@ -24,6 +24,7 @@ int main(void)
     HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);
   }
 }
+
 
 void SystemClock_Config(void)
 {
