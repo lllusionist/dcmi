@@ -12,6 +12,8 @@ set(MX_Defines_Syms
 # STM32CubeMX generated include paths
 set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Hardware/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../App/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/CMSIS/Device/ST/STM32H7xx/Include
@@ -25,18 +27,19 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/sys.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/gpio.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/fmc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/mpu.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/usart.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32h7xx_it.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32h7xx_hal_msp.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/sysmem.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/syscalls.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/lcd_fonts.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/lcd_image.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/lcd_spi_200.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/led_app.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/lcd_app.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../App/Src/led_app.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../App/Src/lcd_app.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Hardware/Src/led.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Hardware/Src/lcd_fonts.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Hardware/Src/lcd_image.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Hardware/Src/lcd_spi_200.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Hardware/Src/fmc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/croutine.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/event_groups.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/list.c
