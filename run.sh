@@ -2,9 +2,8 @@
 # ============================================================
 #  STM32H743XIH6 一键构建 + 烧录脚本
 #  用法:
-#    ./run.sh           # 编译并烧录 (默认 CMSIS-DAP)
-#    ./run.sh stlink    # 编译并烧录 (ST-Link)
-#    ./run.sh build     # 只编译，不烧录
+#   ./run.sh           # 编译并烧录 (默认 CMSIS-DAP)
+#   ./run.sh build     # 只编译，不烧录
 #  要求: arm-none-eabi-gcc / cmake / make / openocd 在 PATH 中
 # ============================================================
 set -e
@@ -19,11 +18,9 @@ PROJECT_NAME=$(basename "$PROJECT_DIR")
 echo "Project: $PROJECT_DIR"
 
 # ---------- 烧录器选择 ----------
+# 仅支持 CMSIS-DAP(本板无 ST-Link)
 MODE="${1:-flash}"
 PROBE_CFG="download.cfg"
-if [ "$MODE" = "stlink" ]; then
-  PROBE_CFG="download-stlink.cfg"
-fi
 
 # ---------- 工具链检查 ----------
 MISSING=0
