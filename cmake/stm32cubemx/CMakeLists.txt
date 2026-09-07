@@ -16,6 +16,8 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/CMSIS/Device/ST/STM32H7xx/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/CMSIS/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/portable/GCC/ARM_CM7/r0p1
 )
 
 # STM32CubeMX generated application sources
@@ -33,6 +35,17 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/lcd_fonts.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/lcd_image.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/lcd_spi_200.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/led_app.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/lcd_app.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/croutine.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/event_groups.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/list.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/queue.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/stream_buffer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/tasks.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/timers.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/portable/MemMang/heap_4.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../FreeRTOS-Kernel/portable/GCC/ARM_CM7/r0p1/port.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../startup_stm32h743xx.s
 )
 
