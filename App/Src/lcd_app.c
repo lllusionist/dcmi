@@ -38,7 +38,6 @@ void Task_LCD(void *argument)
 	}
 }
 
-/* 模块初始化(调度前): 屏硬件 + 队列 */
 void lcd_app_init(void)
 {
 	SPI_LCD_Init();
@@ -51,7 +50,6 @@ void lcd_app_init(void)
 	s_q = xQueueCreate(8, sizeof(struct lcd_msg));
 }
 
-/* 对外 API: 非阻塞投递, 队列满丢弃(显示不阻塞业务) */
 void lcd_show(uint8_t line, const char *text)
 {
 	struct lcd_msg m;

@@ -1,12 +1,11 @@
 #include "led_app.h"
-#include "led.h"	/* LED 引脚宏与 led_init(硬件层) */
+#include "led.h"
 #include "main.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
 static volatile int s_mode = LED_HEARTBEAT;
 
-/* 唯一 LED 任务: 按模式驱动 GPIO */
 void Task_LED(void *argument)
 {
 	(void)argument;
@@ -34,13 +33,11 @@ void Task_LED(void *argument)
 	}
 }
 
-/* 模块初始化(调度前): 底层 GPIO */
 void led_app_init(void)
 {
 	led_init();
 }
 
-/* 对外 API: 业务代码只发命令, 不碰 GPIO */
 void led_set_mode(int mode)
 {
 	s_mode = mode;
