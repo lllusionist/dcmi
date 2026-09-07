@@ -22,6 +22,5 @@
 extern SDRAM_HandleTypeDef hsdram1;
 
 void sdram_init(void);
-void sdram_initialization_sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_CommandTypeDef *Command);
 
 #endif /*__FMC_H */

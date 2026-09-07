@@ -2,12 +2,27 @@
 
 SDRAM_HandleTypeDef hsdram1;
 
-void sdram_init(void) // W9825G6KH-6I
+static void sdram_controller_config(void);
+static void sdram_powerup_sequence(void);
+
+/* sdram_init: SDRAM 初始化唯一入口(两阶段在内部完成,调用方无需关心细节):
+ *   阶段1 sdram_controller_config() 配置 FMC 控制器(时钟/引脚/SDCR1+SDTR1)
+ *   阶段2 sdram_powerup_sequence()   向芯片发上电协议命令序列
+ * 完成后 0xC0000000 起 32MB 即可当普通内存访问 */
+void sdram_init(void)
+{
+    sdram_controller_config();
+    sdram_powerup_sequence();
+}
+
+/* 阶段1: 配置 FMC 控制器 (W9825G6KH-6I) */
+static void sdram_controller_config(void)
 {
     FMC_SDRAM_TimingTypeDef SdramTiming = {0};
     GPIO_InitTypeDef GPIO_InitStruct = {0};
     RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
+    /* FMC 内核时钟源 = D1HCLK(240MHz),SDCLK 再经 SDClockPeriod 分频 = 80MHz */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FMC;
     PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_D1HCLK;
     HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
@@ -115,81 +130,85 @@ void sdram_init(void) // W9825G6KH-6I
 
     HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
     
+    /* 芯片几何配置(FMC_SDCR1): 13行×9列×4bank×16bit = 32MB,与 W9825G6KH 手册一致 */
     hsdram1.Instance = FMC_SDRAM_DEVICE;
-    hsdram1.Init.SDBank = FMC_SDRAM_BANK1;
-    hsdram1.Init.ColumnBitsNumber = FMC_SDRAM_COLUMN_BITS_NUM_9;
-    hsdram1.Init.RowBitsNumber = FMC_SDRAM_ROW_BITS_NUM_13;
-    hsdram1.Init.MemoryDataWidth = FMC_SDRAM_MEM_BUS_WIDTH_16;
-    hsdram1.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;
-    hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_3;
+    hsdram1.Init.SDBank = FMC_SDRAM_BANK1;                  /* SDNE0 -> 0xC0000000 */
+    hsdram1.Init.ColumnBitsNumber = FMC_SDRAM_COLUMN_BITS_NUM_9;   /* 列 9 位 */
+    hsdram1.Init.RowBitsNumber = FMC_SDRAM_ROW_BITS_NUM_13;        /* 行 13 位 */
+    hsdram1.Init.MemoryDataWidth = FMC_SDRAM_MEM_BUS_WIDTH_16;     /* 16 位总线 */
+    hsdram1.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;/* 4 bank */
+    hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_3;   /* CL3,须与 LMR 一致 */
     hsdram1.Init.WriteProtection = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
-    hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_3;
+    hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_3;  /* 240MHz/3=80MHz */
     hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_ENABLE;
     hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_1;
 
-    SdramTiming.LoadToActiveDelay = 2;
-    SdramTiming.ExitSelfRefreshDelay = 7;
-    SdramTiming.SelfRefreshTime = 4;
-    SdramTiming.RowCycleDelay = 7;
-    SdramTiming.WriteRecoveryTime = 3;
-    SdramTiming.RPDelay = 2;
-    SdramTiming.RCDDelay = 2 ;
+    /* 时序(FMC_SDTR1): 7 个命令间隔,单位 SDCLK 周期,
+       由手册 AC 参数 ns ÷ 12.5ns(80MHz) 换算,填小了会出错,留余量无害 */
+    SdramTiming.LoadToActiveDelay = 2;   /* tMRD */
+    SdramTiming.ExitSelfRefreshDelay = 7;/* tXSR 72ns */
+    SdramTiming.SelfRefreshTime = 4;     /* tRAS 42ns */
+    SdramTiming.RowCycleDelay = 7;       /* tRC 60ns */
+    SdramTiming.WriteRecoveryTime = 3;   /* tWR */
+    SdramTiming.RPDelay = 2;             /* tRP 15ns */
+    SdramTiming.RCDDelay = 2 ;           /* tRCD 15ns */
 
     HAL_SDRAM_Init(&hsdram1, &SdramTiming);
 }
 
-/******************************************************************************************************
-*	函 数 名: sdram_initialization_sequence
-*	入口参数: hsdram - SDRAM_HandleTypeDef定义的变量，即表示定义的sdram
-*				 Command	- 控制指令
-*	返 回 值: 无
-*	函数功能: SDRAM 参数配置
-*	说    明: 配置SDRAM相关时序和控制方式
-*******************************************************************************************************/
-
-void sdram_initialization_sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_CommandTypeDef *Command)
+/* 阶段2: SDRAM 芯片上电协议序列(W9825G6KH 手册 §7.1/§7.2)
+ * 顺序: CLK_ENABLE(拉高CKE) -> PALL -> AREF×8 -> LMR(模式寄存器) -> 刷新率 */
+static void sdram_powerup_sequence(void)
 {
 	__IO uint32_t tmpmrd = 0;
+	FMC_SDRAM_CommandTypeDef Command = {0};
 
-	/* Configure a clock configuration enable command */
-	Command->CommandMode 				= FMC_SDRAM_CMD_CLK_ENABLE;	// 开启SDRAM时钟 
-	Command->CommandTarget 				= FMC_COMMAND_TARGET_BANK; 	// 选择要控制的区域
-	Command->AutoRefreshNumber 		= 1;
-	Command->ModeRegisterDefinition 	= 0;
+	/* 开启 SDRAM 时钟(CKE 拉高,芯片离开掉电态) */
+	Command.CommandMode 				= FMC_SDRAM_CMD_CLK_ENABLE;
+	Command.CommandTarget 				= FMC_COMMAND_TARGET_BANK;
+	Command.AutoRefreshNumber 		= 1;
+	Command.ModeRegisterDefinition 	= 0;
 
-	HAL_SDRAM_SendCommand(hsdram, Command, SDRAM_TIMEOUT);	// 发送控制指令
-	HAL_Delay(1);		// 延时等待
+	HAL_SDRAM_SendCommand(&hsdram1, &Command, SDRAM_TIMEOUT);
+	HAL_Delay(1);
 
-	/* Configure a PALL (precharge all) command */ 
-	Command->CommandMode 				= FMC_SDRAM_CMD_PALL;		// 预充电命令
-	Command->CommandTarget 				= FMC_COMMAND_TARGET_BANK;	// 选择要控制的区域
-	Command->AutoRefreshNumber 		= 1;
-	Command->ModeRegisterDefinition 	= 0;
+	/* PALL: 全预充电(全部行关门,回到已知状态) */
+	Command.CommandMode 				= FMC_SDRAM_CMD_PALL;
+	Command.CommandTarget 				= FMC_COMMAND_TARGET_BANK;
+	Command.AutoRefreshNumber 		= 1;
+	Command.ModeRegisterDefinition 	= 0;
 
-	HAL_SDRAM_SendCommand(hsdram, Command, SDRAM_TIMEOUT);  // 发送控制指令
+	HAL_SDRAM_SendCommand(&hsdram1, &Command, SDRAM_TIMEOUT);
 
-	/* Configure a Auto-Refresh command */ 
-	Command->CommandMode 				= FMC_SDRAM_CMD_AUTOREFRESH_MODE;	// 使用自动刷新
-	Command->CommandTarget 				= FMC_COMMAND_TARGET_BANK;          // 选择要控制的区域
-	Command->AutoRefreshNumber			= 8;                                // 自动刷新次数
-	Command->ModeRegisterDefinition 	= 0;
+	/* AREF ×8: 上电协议要求的连续自动刷新 */
+	Command.CommandMode 				= FMC_SDRAM_CMD_AUTOREFRESH_MODE;
+	Command.CommandTarget 				= FMC_COMMAND_TARGET_BANK;
+	Command.AutoRefreshNumber			= 8;
+	Command.ModeRegisterDefinition 	= 0;
 
-	HAL_SDRAM_SendCommand(hsdram, Command, SDRAM_TIMEOUT);	// 发送控制指令
+	HAL_SDRAM_SendCommand(&hsdram1, &Command, SDRAM_TIMEOUT);
 
-	/* Program the external memory mode register */
+	/* LMR: 写模式寄存器(BL=2/顺序/CL3/标准模式/单点写) */
 	tmpmrd = (uint32_t)SDRAM_MODEREG_BURST_LENGTH_2         |
 							SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL   |
 							SDRAM_MODEREG_CAS_LATENCY_3           |
 							SDRAM_MODEREG_OPERATING_MODE_STANDARD |
 							SDRAM_MODEREG_WRITEBURST_MODE_SINGLE;
 
-	Command->CommandMode					= FMC_SDRAM_CMD_LOAD_MODE;	// 加载模式寄存器命令
-	Command->CommandTarget 				= FMC_COMMAND_TARGET_BANK;	// 选择要控制的区域
-	Command->AutoRefreshNumber 		= 1;
-	Command->ModeRegisterDefinition 	= tmpmrd;
+	Command.CommandMode					= FMC_SDRAM_CMD_LOAD_MODE;
+	Command.CommandTarget 				= FMC_COMMAND_TARGET_BANK;
+	Command.AutoRefreshNumber 		= 1;
+	Command.ModeRegisterDefinition 	= tmpmrd;
 
-	HAL_SDRAM_SendCommand(hsdram, Command, SDRAM_TIMEOUT);	// 发送控制指令
+	HAL_SDRAM_SendCommand(&hsdram1, &Command, SDRAM_TIMEOUT);
 	
-	HAL_SDRAM_ProgramRefreshRate(hsdram, 918);  // 配置刷新率
+	/* 刷新率计算: 605 = (64ms ÷ 8192行) × 80MHz − 20
+	 *   W9825 手册 §9.5: tREF = 64ms,即 64ms 内须刷完全部 8192 行
+	 *   -> 每行最大间隔 = 64ms/8192 = 7.8125µs
+	 *   SDCLK = 240MHz/3 = 80MHz -> 一拍 12.5ns
+	 *   7.8125µs ÷ 12.5ns = 625 拍,即每 625 拍须插一次 Auto Refresh
+	 *   减 20 拍余量(官方惯例): 625 − 20 = 605
+	 *   注意: 刷新率必须随 SDCLK 重算;填大会漏刷丢数据,填小仅浪费带宽 */
+	HAL_SDRAM_ProgramRefreshRate(&hsdram1, 605);
 
 }
