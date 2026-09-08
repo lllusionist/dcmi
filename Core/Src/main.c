@@ -6,6 +6,7 @@
 #include "mpu.h"
 #include "led_app.h"
 #include "lcd_app.h"
+#include "vofa.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -30,11 +31,10 @@ int main(void)
 	uart_init();
 	led_app_init();
 	lcd_app_init();
-
-	if (xTaskCreate(Task_LED, "LED", 256, NULL, 1, NULL) != pdPASS)
-		Error_Handler();
-	if (xTaskCreate(Task_LCD, "LCD", 256, NULL, 2, NULL) != pdPASS)
-		Error_Handler();
+	vofa_thread_init();
+	led_app_start();
+	lcd_app_start();
+	vofa_thread_start();
 
 	vTaskStartScheduler();
 

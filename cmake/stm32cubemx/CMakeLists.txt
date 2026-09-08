@@ -35,6 +35,7 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/syscalls.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../App/Src/led_app.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../App/Src/lcd_app.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../App/Src/vofa.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Hardware/Src/led.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Hardware/Src/lcd_fonts.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Hardware/Src/lcd_image.c

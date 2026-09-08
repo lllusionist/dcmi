@@ -20,8 +20,8 @@ struct lcd_msg {
 
 static QueueHandle_t s_q;	/* 显示指令队列(模块私有) */
 
-/* 唯一 LCD 任务: 屏只被它碰 */
-void Task_LCD(void *argument)
+/* 唯一 LCD 任务: 屏只被它碰(模块私有) */
+static void Task_LCD(void *argument)
 {
 	struct lcd_msg m;
 	uint16_t y;
@@ -48,6 +48,13 @@ void lcd_app_init(void)
 	LCD_DisplayString(10, 2, (char *)"FreeRTOS LCD App");
 
 	s_q = xQueueCreate(8, sizeof(struct lcd_msg));
+}
+
+/* 阶段2(所有慢速外设初始化完成后调用): 创建 LCD 任务 */
+void lcd_app_start(void)
+{
+	if (xTaskCreate(Task_LCD, "LCD", 256, NULL, 2, NULL) != pdPASS)
+		Error_Handler();
 }
 
 void lcd_show(uint8_t line, const char *text)

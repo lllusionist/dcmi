@@ -6,7 +6,8 @@
 
 static volatile int s_mode = LED_HEARTBEAT;
 
-void Task_LED(void *argument)
+/* 唯一 LED 任务: 按模式驱动 GPIO(模块私有) */
+static void Task_LED(void *argument)
 {
 	(void)argument;
 
@@ -36,6 +37,13 @@ void Task_LED(void *argument)
 void led_app_init(void)
 {
 	led_init();
+}
+
+/* 阶段2(所有慢速外设初始化完成后调用): 创建 LED 任务 */
+void led_app_start(void)
+{
+	if (xTaskCreate(Task_LED, "LED", 256, NULL, 1, NULL) != pdPASS)
+		Error_Handler();
 }
 
 void led_set_mode(int mode)
